@@ -20,7 +20,7 @@ func (memoryRepo *MemoryRepo) Save(entry *shortener.Entry) error {
 
 func (memoryRepo *MemoryRepo) Find(path string) (*shortener.Entry, error) {
 	for _, entry := range memoryRepo.entries {
-		if entry.Path() == path {
+		if entry.Path == path {
 			return &entry, nil
 		}
 	}

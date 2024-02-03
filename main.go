@@ -1,13 +1,20 @@
 package main
 
 import (
-	"fmt"
+	"encoding/json"
+	"hash/fnv"
+	"net/http"
+	"strconv"
+	"strings"
+	"time"
+
 	"go-url-shortener/memrepo"
 	"go-url-shortener/shortener"
-	"hash/fnv"
-	"strconv"
-	"time"
 )
+
+type HttpHandler struct {
+	Service shortener.ShortenerService
+}
 
 func main() {
 	svc := shortener.New(
@@ -15,20 +22,51 @@ func main() {
 		shortener.WithGeneratorFunc(id),
 		shortener.WithTimestampFunc(now),
 	)
-	
-	entry, _ := svc.Shorten("https://www.google.com/")
-	fmt.Printf("url: " + entry.Url() + "\n")
-	fmt.Printf("shortUrl: " + entry.Path() + "\n")
-	dateadded := strconv.FormatInt(int64(entry.DateAdded()), 10)
-	fmt.Printf("dateAdded: "+dateadded + "\n")
 
-	s1, _ := svc.Redirect("1508094990")
-	_, err2 := svc.Redirect("1508094991")
+	handler := &HttpHandler{
+		Service: svc,
+	}
 
-	fmt.Println("url for shortUrl: 1508094990: " + s1)
-	fmt.Println("url for shortUrl: 1508094991: " + err2.Error())
+	srv := &http.Server{
+		Addr: ":8080",
+	}
+
+	http.HandleFunc("/shorten", handler.shorten)
+	http.HandleFunc("/", handler.redirect)
+
+	srv.ListenAndServe()
 }
 
+func (handler *HttpHandler) shorten(w http.ResponseWriter, r *http.Request) {
+	switch r.Method {
+	case http.MethodPost:
+		var jap map[string]string
+		json.NewDecoder(r.Body).Decode(&jap)
+		entry, _ := handler.Service.Shorten(jap["url"])
+		jsonRespone, _ := json.Marshal(entry)
+		w.Header().Set("Content-Type", "application/json")
+		w.Write(jsonRespone)
+	default:
+		http.Error(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
+		return
+	}
+}
+
+func (handler *HttpHandler) redirect(w http.ResponseWriter, r *http.Request) {
+	switch r.Method {
+	case http.MethodGet:
+		path := strings.Split(r.URL.Path, "/")
+		url, err := handler.Service.Redirect(path[1])
+		if err != nil {
+			http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
+		}
+		http.Redirect(w, r, url, http.StatusMovedPermanently)
+		return
+	default:
+		http.Error(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
+		return
+	}
+}
 
 func id(s string) string {
 	h := fnv.New32a()
@@ -40,3 +78,5 @@ func id(s string) string {
 func now() int64 {
 	return time.Now().Unix()
 }
+
+// curl --header "Content-Type: application/json" --request POST -data '{\"url\":\"https\:\/\/google\.com\"}' http://localhost:8080/

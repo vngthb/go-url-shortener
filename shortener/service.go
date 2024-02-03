@@ -42,10 +42,11 @@ func WithTimestampFunc(timestamper Timestamper) func(*shortenerService) {
 }
 
 func (service *shortenerService) Shorten(url string) (*Entry, error) {
-	entry := &Entry{}
-	entry.SetUrl(url)
-	entry.SetPath(service.NewId(url))
-	entry.SetDateAdded(service.NewTimestamp())
+	entry := &Entry{
+		Url:       url,
+		Path:      service.NewId(url),
+		DateAdded: service.NewTimestamp(),
+	}
 	if err := service.shortenerRepository.Save(entry); err != nil {
 		return nil, err
 	}
@@ -57,5 +58,5 @@ func (service *shortenerService) Redirect(path string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return entry.Url(), nil
+	return entry.Url, nil
 }
