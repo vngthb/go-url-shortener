@@ -1,4 +1,4 @@
-package memrepo
+package mem_repo
 
 import (
 	"errors"
