@@ -1,6 +1,6 @@
-package shortener
+package url_shortener
 
-type Serializer interface {
+type ISerializer interface {
 	Deserialize(input *Entry) ([]byte, error)
 	Serialize(input []byte) (*Entry, error)
 }

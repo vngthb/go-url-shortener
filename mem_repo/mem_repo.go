@@ -2,27 +2,27 @@ package mem_repo
 
 import (
 	"errors"
-	"go-url-shortener/shortener"
+	"go-url-shortener/url_shortener"
 )
 
 type MemoryRepo struct {
-	entries []shortener.Entry
+	entries []url_shortener.Entry
 }
 
-func New() *MemoryRepo {
+func NewRepo() *MemoryRepo {
 	return &MemoryRepo{}
 }
 
-func (memoryRepo *MemoryRepo) Save(entry *shortener.Entry) error {
-	memoryRepo.entries = append(memoryRepo.entries, *entry)
+func (memoryRepo *MemoryRepo) Save(entry url_shortener.Entry) error {
+	memoryRepo.entries = append(memoryRepo.entries, entry)
 	return nil
 }
 
-func (memoryRepo *MemoryRepo) Find(path string) (*shortener.Entry, error) {
+func (memoryRepo *MemoryRepo) Find(path string) (url_shortener.Entry, error) {
 	for _, entry := range memoryRepo.entries {
-		if entry.Path == path {
-			return &entry, nil
+		if entry.Path() == path {
+			return entry, nil
 		}
 	}
-	return nil, errors.New("path not found")
+	return url_shortener.Entry{}, errors.New("path not found")
 }

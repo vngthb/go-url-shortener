@@ -5,15 +5,15 @@ import (
 	"net/http"
 	"strings"
 
-	"go-url-shortener/shortener"
+	"go-url-shortener/url_shortener"
 )
 
 type Handler struct {
-	service    shortener.Service
-	serializer shortener.Serializer
+	service    url_shortener.IService
+	serializer url_shortener.ISerializer
 }
 
-func NewHttpHandler(service shortener.Service, serializer shortener.Serializer) *Handler {
+func NewHandler(service url_shortener.IService, serializer url_shortener.ISerializer) *Handler {
 	return &Handler{
 		service: service,
 		serializer: serializer,

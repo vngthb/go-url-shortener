@@ -7,7 +7,7 @@ import (
 
 	"go-url-shortener/http"
 	"go-url-shortener/mem_repo"
-	"go-url-shortener/shortener"
+	"go-url-shortener/url_shortener"
 )
 
 func main() {
@@ -23,13 +23,13 @@ func main() {
 		return time.Now().Unix()
 	}
 
-	service := shortener.New(
-		shortener.WithRepo(mem_repo.New()),
-		shortener.WithGeneratorFunc(genFunc),
-		shortener.WithTimestampFunc(timeFunc),
+	service := url_shortener.NewService(
+		url_shortener.WithRepo(mem_repo.NewRepo()),
+		url_shortener.WithGeneratorFunc(genFunc),
+		url_shortener.WithTimestampFunc(timeFunc),
 	)
 
-	handler := http.NewHttpHandler(service, nil)
+	handler := http.NewHandler(service, nil)
 
 	http.NewServer(":8080").
 		WithHandler("/shorten", handler.Shorten).

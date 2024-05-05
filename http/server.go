@@ -24,5 +24,7 @@ func (server *Server) WithHandler(path string, fun func(http.ResponseWriter, *ht
 }
 
 func (server *Server) Start() {
-	server.http.ListenAndServe()
+	if error := server.http.ListenAndServe(); error != nil {
+		panic(error)
+	}
 }
